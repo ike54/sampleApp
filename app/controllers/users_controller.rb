@@ -3,7 +3,7 @@ class UsersController < ApplicationController
   before_action :correct_user,   only: [:edit, :update]
   before_action :admin_user,     only: :destroy
   before_filter :signed_in_user_filter, only: [:new, :create]
-  before_filter :admin_protect, only: [:destroy]
+
   def new
   	@user = User.new
   end
@@ -14,6 +14,7 @@ class UsersController < ApplicationController
   
   def show
     @user = User.find(params[:id])
+    @microposts = @user.microposts.paginate(page: params[:page])
   end
 
   def create
@@ -41,7 +42,7 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    User.find(params[:id]).destroy
+    User.find(params[:id]).destroy unless User.find(params[:id]).admin?
     flash[:success] = "User destroyed."
     redirect_to users_url
   end
@@ -73,12 +74,4 @@ class UsersController < ApplicationController
         redirect_to root_path, notice: "Already logged in"
       end
     end
-
-    def admin_protect
-      if admin?
-        redirect_to root_path, notice: "Dont delete yourself!"
-      end
-    end
-
-
 end
